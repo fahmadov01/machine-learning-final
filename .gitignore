@@ -1,0 +1,41 @@
+# Dataset (images + annotations)
+mtsd_fully_annotated_annotation/
+mtsd_fully_annotated_images.*/
+mtsd_fully_annotated_images.train.0/
+mtsd_fully_annotated_images.train.1/
+mtsd_fully_annotated_images.train.2/
+mtsd_fully_annotated_images.val/
+mtsd_fully_annotated_images.test/
+simplified_annotations/
+*.jpg
+*.jpeg
+*.png
+
+# Large model / training artifacts
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+optimizer.pt
+checkpoints/
+cache/
+
+# Python / venv
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/
+
+images/
+annotations/
+output/
