@@ -1,0 +1,30 @@
+#PyTorch 
+# CPU-only (default, slow for training):
+#   pip install torch torchvision
+#
+# CUDA 12.1:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+#
+# CUDA 11.8 (older drivers):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+#
+# Check your drivers max supported CUDA version with: nvidia-smi
+# Then pick the matching cu1XX above. If unsure, cu121 works for driver >= 525
+torch>=2.1.0
+torchvision>=0.16.0
+
+#HuggingFace
+transformers>=4.40.0
+datasets>=2.18.0
+huggingface-hub>=0.22.0
+
+#Metrics & reporting
+scikit-learn>=1.4.0
+numpy>=1.26.0
+
+#Visualisation
+matplotlib>=3.8.0
+pillow>=10.0.0
+
+#logging
+tensorboard>=2.16.0

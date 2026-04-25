@@ -5,14 +5,14 @@ Two traffic-sign classifiers fine-tuned on the Mapillary Traffic Sign Dataset (M
 - **`CNN/`** — EfficientNet-B3 convolutional baseline
 - **`ImageTransformer.py`** — Vision Transformer (ViT) comparison model
 
-Both train on cropped sign patches from MTSD v2 (400 classes). The CNN directory also contains the saved training/evaluation outputs and a ready-to-run inference script.
+Both train on cropped sign patches from MTSD v2 (400 classes). The CNN directory also contains the saved training/evaluation outputs, the trained checkpoint, and a ready-to-run inference script.
 
 ---
 
 # CNN (EfficientNet-B3)
 
 ## Overview
-`CNN/` fine-tunes `google/efficientnet-b3` (HuggingFace, ImageNet-pretrained) on MTSD sign patches. Two-stage fine-tuning: frozen backbone for 5 epochs, then end-to-end with a lower backbone LR. Training uses label smoothing, Mixup, and RandAugment. Full hyperparameters in `CNN/config.py`.
+`CNN/` fine-tunes `google/efficientnet-b3` (HuggingFace, ImageNet-pretrained) on MTSD sign patches. Two-stage fine-tuning: frozen backbone for 5 epochs, then end to end with a lower backbone LR. Training uses label smoothing, Mixup, and RandAugment. Full hyperparameters in `CNN/config.py`.
 
 ## Results
 
@@ -23,9 +23,9 @@ Best checkpoint at epoch 19 of 26.
 | Top-1 accuracy (val) | **92.92%** |
 | Top-5 accuracy (val) | 99.41% |
 | Weighted F1 | 92.72% |
-| Macro F1 (386 non-empty classes) | 89.02% |
+| Macro F1 (386 nonempty classes) | 89.02% |
 
-Evaluation was done on the MTSD val split; the official test split ships without public annotations. Per-class metrics in `CNN/eval_results/report_val.csv`, confusion matrix in `CNN/eval_results/confusion_matrix_val.png`, TensorBoard logs in `CNN/runs/`.
+Evaluation was done on the MTSD val split; the official test split ships without public annotations. Per class metrics in `CNN/eval_results/report_val.csv`, TensorBoard logs in `CNN/runs/`.
 
 ## Running inference
 
@@ -45,7 +45,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 pip install torch torchvision
 ```
 
-Place the trained checkpoint at `CNN/checkpoints/best_model.pt` (the 136 MB file exceeds GitHub's 100 MB limit and is not in the repo — ask the owner or retrain).
+The trained checkpoint should be located at `CNN/checkpoints/best_model.pt` It was over GitHub's 100MB size limit and is not in the repo. Please use this Google Drive link to download: https://drive.google.com/file/d/1rWEAtYrTrrwYHj6HWmLVApJspr8NXkIz/view?usp=sharing
 
 Then:
 ```bash
@@ -59,23 +59,21 @@ python infer.py --checkpoint checkpoints/best_model.pt --folder path/to/signs/
 python infer.py --checkpoint checkpoints/best_model.pt --image sign.jpg --top-k 10
 ```
 
-On Windows, prepend `PYTHONIOENCODING=utf-8` if you hit a cp1252 encode error.
-
-Five pre-cropped sanity-check images are committed at `CNN/test_crops/`. Running `python infer.py --checkpoint checkpoints/best_model.pt --folder test_crops/` gets 4/5 correct, consistent with the 92.9% val accuracy.
+Five precropped test images are committed at `CNN/test_crops/`. Running `python infer.py --checkpoint checkpoints/best_model.pt --folder test_crops/` gets 4/5 correct which is consistent with the 92.9% val accuracy
 
 ### Input expectations
-The model was trained on tight crops around a single sign (with 15% bbox padding). Pass in an image already cropped to one sign for best results.
+The model was trained on tight crops around a single sign with 15% bbox padding. Pass in an image already cropped to one sign for best results.
 
 ## Re-evaluating
 
 ```bash
 python evaluate.py --checkpoint checkpoints/best_model.pt --split val
 ```
-Outputs `eval_results/report_val.csv` and `eval_results/confusion_matrix_val.png`. Evaluation on `--split test` will not work (no public annotations).
+Outputs top-1/top-5 accuracy plus macro precision/recall/F1 to stdout, and writes `eval_results/report_val.csv`. Evaluation on `--split test` will not work (no public annotations).
 
 ## Retraining
 
-Retraining requires the full MTSD v2 fully-annotated download (images + annotations, ~100 GB). Extract the archives into `CNN/` (layout below) or point at a custom path via `MTSD_ROOT` or `--mtsd-root`.
+Retraining requires the full MTSD v2 fully-annotated download (images + annotations, ~47 GB). Extract the archives into `CNN/` (layout below) or point at a custom path via `MTSD_ROOT` or `--mtsd-root`.
 
 ```
 CNN/
@@ -89,11 +87,9 @@ CNN/
 
 ```bash
 python train.py                            # local MTSD
-python train.py --use-hf                   # HuggingFace mirror (pre-cropped)
+python train.py --use-hf                   # HuggingFace mirror
 tensorboard --logdir runs/                 # monitor
 ```
-
-More detail (training strategy table, hyperparameter list, file structure) in `CNN/README.md`.
 
 ---
 
