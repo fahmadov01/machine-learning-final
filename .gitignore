@@ -10,6 +10,12 @@ simplified_annotations/
 *.jpg
 *.jpeg
 *.png
+# Keep committed sample crops used for inference demo
+!CNN/test_crops/
+!CNN/test_crops/*.jpg
+# Keep committed evaluation plots
+!CNN/eval_results/
+!CNN/eval_results/*.png
 
 # Large model / training artifacts
 *.safetensors
@@ -38,4 +44,3 @@ Thumbs.db
 
 images/
 annotations/
-output/

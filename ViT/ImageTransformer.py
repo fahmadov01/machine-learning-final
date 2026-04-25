@@ -4,6 +4,7 @@ import torch
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
+import random
 from transformers import (
     AutoImageProcessor,
     AutoModelForImageClassification,
@@ -104,6 +105,47 @@ def compute_metrics(eval_pred):
 
     return {"accuracy": accuracy}
 
+#This will test 5 random images and output the results to a function
+def test_random_images(model, processor, samples, image_dir, label_map, output_file):
+    model.eval()
+    id2label = {i: l for l, i in label_map.items()}
+
+    #Choose 5 random images from samples
+    chosen = random.sample(samples, min(5, len(samples)))
+
+    with open(output_file, "a") as f:
+        f.write("\n===== RANDOM TEST RESULTS =====\n")
+
+        for s in chosen:
+            #Open image
+            img_path = os.path.join(image_dir, s["image"])
+            image = Image.open(img_path).convert("RGB")
+
+            #Input into model
+            inputs = processor(images=image, return_tensors="pt")
+            inputs = {k: v.to(model.device) for k, v in inputs.items()}
+
+            with torch.no_grad():
+                outputs = model(**inputs)
+                logits = outputs.logits.cpu().numpy()[0]
+
+            #Calculate and if probabilty greater than 0.5, add it to predicted
+            probs = 1 / (1 + np.exp(-logits))
+            preds = (probs > 0.5).astype(int)
+
+            pred_labels = set([id2label[i] for i, v in enumerate(preds) if v == 1])
+            true_labels = set(s["labels"])
+
+            correct = pred_labels == true_labels
+            
+            #Write to output file
+            f.write(
+                f"Image: {s['image']} | "
+                f"Ground Truth: {list(true_labels)} | "
+                f"Predicted: {list(pred_labels)} | "
+                f"Correct: {correct}\n"
+            )
+
 def main():
     # This builds the dataset from annotations
     samples = build_samples(ANNOTATIONS_PATH)
@@ -112,8 +154,7 @@ def main():
     split = int(0.9 * len(samples))
     train_samples = samples[:split]
     val_samples = samples[split:]
-
-    train_samples = samples[:6000]
+    val_samples = samples[split]
 
     #This is a ViT image preprocessing pipeline
     processor = AutoImageProcessor.from_pretrained(MODEL_NAME)
@@ -165,6 +206,17 @@ def main():
     #This is the evalation after the training
     eval_results = trainer.evaluate()
     print(eval_results)
+
+    #Write evaluation results to file
+    output_file = os.path.join(OUTPUT_DIR, "test_results.txt")
+
+    with open(output_file, "w") as f:
+        f.write("===== EVALUATION RESULTS =====\n")
+        for k, v in eval_results.items():
+            f.write(f"{k}: {v}\n")
+
+    #Test on random images
+    test_random_images(model, processor, val_samples, IMAGE_DIR, label_map, output_file)
 
 if __name__ == "__main__":
     main()
